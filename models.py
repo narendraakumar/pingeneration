@@ -6,6 +6,8 @@ from copy import deepcopy
 
 from PIL import Image, ImageFont, ImageDraw
 
+from utils import get_abs_path
+
 
 class Img():
     obj = None
@@ -146,7 +148,7 @@ class Text:
         self.font_path = font_path
         self.max_width = max_width
         if font_path is None:
-            font_path = '/home/narendra/Documents/pinp/pacifico/Pacifico.ttf'
+            font_path = get_abs_path('/pacifico/Pacifico.ttf')
         self.font = ImageFont.truetype(font_path, size=font_size, encoding="unic")
 
     @property

@@ -6,6 +6,7 @@ import numpy as np
 from PIL import Image
 
 from models import Img, Text
+from utils import get_abs_path
 
 
 class Pin:
@@ -154,7 +155,7 @@ def read_img_files(file_path):
 
 
 if __name__ == '__main__':
-    imgs_loaded = read_img_files('/home/narendra/Documents/pinp')
-    # draw_text("This could be a single line text but its too long to fit in one.")
-    pin = Pin(imgs=imgs_loaded, folder_path='/home/narendra/Documents/pinp', product_header='TOP 5 PRODUCTS')
+    imgs_folder = get_abs_path('/pics')
+    imgs_loaded = read_img_files(imgs_folder)
+    pin = Pin(imgs=imgs_loaded, folder_path=imgs_folder, product_header='TOP 5 PRODUCTS')
     res = pin.make_collage()
