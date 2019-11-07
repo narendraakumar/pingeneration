@@ -193,6 +193,27 @@ class Text:
         return lines
 
     def get_all_fonts(self, zip_file_path):
+        # todo copy all fonts to file and check condition of existence
+        # GLOB_PARMS = "*"  # maybe "*.pdf" ?
+        #
+        # for file in glob.glob(os.path.join(SRC_DIR, GLOB_PARMS)):
+        #     if file not in glob.glob(os.path.join(TARG_DIR, GLOB_PARMS)):
+        #         shutil.copy(file, TARG_DIR)
+        #     else:
+        #         print("{} exists in {}".format(
+        #             file, os.path.join(os.path.split(TARG_DIR)[-2:])))
+
+        # def DeleteFile(Path_):
+        #     """Deletes saved project AND its corresponding "files" folder."""
+        #     try:  # deletes the folder
+        #         os.remove(Path_)
+        #     except OSError:
+        #         pass
+        #     try:  # deletes the file, using some fancy python operations to arrive at the filename
+        #         shutil.rmtree(
+        #             os.path.join(os.path.dirname(Path_), os.path.splitext(os.path.basename(Path_))[0]) + "_files", True)
+        #     except OSError:
+        #         pass
         dir = os.path.join(tempfile.gettempdir(), '.{}'.format(hash(os.times())))
         if not os.path.exists(dir):
             os.mkdir(dir)
