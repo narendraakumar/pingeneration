@@ -152,6 +152,16 @@ class Text:
         self.font = ImageFont.truetype(font_path, size=font_size, encoding="unic")
 
     @property
+    def lower_case(self):
+        self.txt = self.txt.lower()
+        return True
+
+    @property
+    def upper_case(self):
+        self.txt = self.txt.upper()
+        return True
+
+    @property
     def txt_width(self):
         return self.font.getsize(self.txt)[0]
 

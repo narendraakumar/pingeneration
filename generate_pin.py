@@ -149,13 +149,8 @@ def read_img_files(file_path):
     return imgs
 
 
-# def get_size_of_pin(images):
-#     for
-#     pass
-
-
 if __name__ == '__main__':
     imgs_folder = get_abs_path('/pics')
     imgs_loaded = read_img_files(imgs_folder)
-    pin = Pin(imgs=imgs_loaded, folder_path=imgs_folder, product_header='TOP 5 PRODUCTS')
+    pin = Pin(imgs=imgs_loaded, folder_path=imgs_folder, product_header='TOP FIVE PRODUCTS')
     res = pin.make_collage()
