@@ -2,14 +2,16 @@ import glob
 import os
 import tempfile
 import zipfile
+from collections import OrderedDict
 from copy import deepcopy
 
+import numpy as np
 from PIL import Image, ImageFont, ImageDraw
 
-from utils import get_abs_path
+from utils import get_abs_path, write_to_file, read_from_file
 
 
-class Img():
+class Img:
     obj = None
 
     def __init__(self, file_path):
@@ -140,15 +142,110 @@ class Img():
         self.obj = new_im
         return True
 
+    @staticmethod
+    def make_blank_img(img_size: tuple = (1000, 3000),
+                       color: tuple = (245, 245, 245),
+                       transparent: bool = False, folder_path=None, write=False):
+        if transparent:
+            img_type = 'RGBA'
+            color = (0, 0, 0, 0)
+        else:
+            img_type = 'RGB'
 
-class Text:
+        img = Image.new(img_type, img_size, color)
+        file_path = tempfile.NamedTemporaryFile(suffix='.jpg').name
+        # if folder_path:
+        #     file_path = folder_path + file_path
+        pin_img = Img(file_path)
+        pin_img.obj = img
+        if not transparent and write:
+            pin_img.write_img(file_path=file_path)
+        return pin_img
 
-    def __init__(self, txt: str = '', font_path=None, font_size=20, max_width=100):
+
+class Fonts:
+
+    def __init__(self, zip_file_path=None):
+        self.font_name_list = None
+        if zip_file_path is None:
+            zip_file_path = get_abs_path('/Font Pack.zip')
+        self.zip_path = zip_file_path
+        self.fonts = self.make_all_fonts(self.zip_path)
+
+    def write_fonts_on_image(self):
+        # all_fonts = read_from_file(file_path=get_abs_path('/fonts/fonts.txt'))
+        all_fonts = self.fonts
+        font_size = 20
+        pin_width = 1500
+        text_in_one_column = 70
+        x = 20
+        y = 20
+        pin_height = int(20 * len(all_fonts) / 2.5)
+        img = Img.make_blank_img(img_size=(pin_width, pin_height + 10), folder_path='/tmp/', color=(255, 255, 255))
+
+        arr = np.arange(0, len(all_fonts), text_in_one_column)
+        x_w = int(pin_width / len(arr))
+
+        r = 1
+        for i, font in enumerate(all_fonts):
+            txt_obj = Text(txt=str('{}.  {}'.format(i, font)), font_path=all_fonts[font], font_size=font_size,
+                           max_width=pin_width)
+            y += (font_size + 8)
+            if i / text_in_one_column >= r:
+                r += 1
+                x += x_w
+                y = 20
+            txt_obj.draw_text(img=img, loc=(x, y))
+        img.write_img(file_path=get_abs_path('/fonts/fonts.jpg'))
+        return True
+
+    def choose_font(self, index: int = None, name: str = None):
+        fonts = self.font_name_list
+        if self.font_name_list is None:
+            fonts = read_from_file(get_abs_path('/fonts/font.txt'))
+
+        all_fonts = self.fonts
+        if index is not None and len(all_fonts) > 0:
+            return all_fonts[fonts[index]]
+        elif name is not None and len(all_fonts) > 0:
+            return all_fonts[fonts[index]]
+        elif not name and not index:
+            return get_abs_path('/pacifico/Pacifico.ttf')
+        else:
+            raise Exception('fonts are missing')
+
+    def make_all_fonts(self, zip_file_path):
+
+        dir = get_abs_path('/fonts')
+        if not os.path.exists(dir):
+            os.mkdir(dir)
+        dirContents = os.listdir(dir)
+        if len(dirContents) == 0:
+            if not os.path.exists(dir):
+                os.mkdir(dir)
+            with zipfile.ZipFile(zip_file_path, "r") as zip_ref:
+                zip_ref.extractall(dir)
+
+        mylist = [f for f in glob.glob(dir + "/**/*.ttf", recursive=True)]
+        # rmtree(tmp, ignore_errors=True)
+        font_dict = OrderedDict((k.split('.')[0].split('/')[-1], k) for k in mylist)
+        f_path = get_abs_path("/fonts/font.txt")
+        setattr(self, 'font_name_list', list(font_dict.keys()))
+        assert write_to_file(f_path, list(font_dict.keys()))
+        return font_dict
+
+
+class Text(Fonts):
+
+    def __init__(self, txt: str = '', font_path=None, font_size=20, max_width=100,
+                 zip_file_path=None, font_name=None, font_index=None):
+        super().__init__(zip_file_path)
         self.txt = txt
         self.font_path = font_path
         self.max_width = max_width
         if font_path is None:
-            font_path = get_abs_path('/pacifico/Pacifico.ttf')
+            font_path = self.choose_font(name=font_name, index=font_index)
+
         self.font = ImageFont.truetype(font_path, size=font_size, encoding="unic")
 
     @property
@@ -192,37 +289,6 @@ class Text:
                 lines.append(line)
         return lines
 
-    def get_all_fonts(self, zip_file_path):
-        # todo copy all fonts to file and check condition of existence
-        # GLOB_PARMS = "*"  # maybe "*.pdf" ?
-        #
-        # for file in glob.glob(os.path.join(SRC_DIR, GLOB_PARMS)):
-        #     if file not in glob.glob(os.path.join(TARG_DIR, GLOB_PARMS)):
-        #         shutil.copy(file, TARG_DIR)
-        #     else:
-        #         print("{} exists in {}".format(
-        #             file, os.path.join(os.path.split(TARG_DIR)[-2:])))
-
-        # def DeleteFile(Path_):
-        #     """Deletes saved project AND its corresponding "files" folder."""
-        #     try:  # deletes the folder
-        #         os.remove(Path_)
-        #     except OSError:
-        #         pass
-        #     try:  # deletes the file, using some fancy python operations to arrive at the filename
-        #         shutil.rmtree(
-        #             os.path.join(os.path.dirname(Path_), os.path.splitext(os.path.basename(Path_))[0]) + "_files", True)
-        #     except OSError:
-        #         pass
-        dir = os.path.join(tempfile.gettempdir(), '.{}'.format(hash(os.times())))
-        if not os.path.exists(dir):
-            os.mkdir(dir)
-        with zipfile.ZipFile(zip_file_path, "r") as zip_ref:
-            zip_ref.extractall(dir)
-        mylist = [f for f in glob.glob(dir + "/**/*.ttf", recursive=True)]
-        # rmtree(tmp, ignore_errors=True)
-        return mylist
-
     def get_text_height(self):
         return len(self.text_wrap()) * self.font.getsize('hg')[1]
 
@@ -237,3 +303,21 @@ class Text:
             y = y + line_height
             loc = (loc[0], y)
         return img
+
+
+class Imgs:
+
+    @staticmethod
+    def make_imgs_equal_height(Pin, _height=300):
+        thumb_objs = []
+        for img in Pin.imgs:
+            thumbnail_img = img.resize(new_height=300)
+            setattr(img, 'thumbnail_img', thumbnail_img)
+            thumb_objs.append(thumbnail_img)
+        return thumb_objs
+
+    @staticmethod
+    def get_imgs_dim(imgs_objs):
+        all_widths = [ob.width for ob in imgs_objs]
+        all_heights = [ob.height for ob in imgs_objs]
+        return all_widths, all_heights
