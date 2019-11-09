@@ -1,0 +1,2 @@
+select all the fonts in the folder,
+ then right klick them and click on install
