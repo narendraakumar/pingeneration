@@ -10,7 +10,8 @@ from utils import get_abs_path
 
 
 class Pin:
-
+    font_index = None
+    font_name = None
     def __init__(self, imgs: list, folder_path: str, desired_height=300, product_header='none'):
         super().__init__()
         if not all([False for p in imgs if type(p) != Img]):
@@ -63,7 +64,7 @@ class Pin:
         total_h_gap = h_gap * h_line
         pad_o = self.aspect_ratio_equalizer()
         l_margin = l_margin + pad_o
-        imgs = Imgs.make_imgs_equal_height(self,_height=img_height)
+        imgs = Imgs.make_imgs_equal_height(self, _height=img_height)
         h_pad = l_margin + r_margin + total_v_gap
         v_pad = t_margin + b_margin + total_h_gap
         tot_heights_imgs = len(imgs) * 300
@@ -72,7 +73,8 @@ class Pin:
         for _img in self.imgs:
             print(_img.aspect_ratio)
             img = _img.thumbnail_img
-            txt_obj = Text(txt=str(_img.name_without_ext), font_path=None, font_size=font_size, max_width=img.width,font_index=3)
+            txt_obj = Text(txt=str(_img.name_without_ext), font_path=None, font_size=font_size, max_width=img.width,
+                           font_index=Pin.font_index)
             d.append(txt_obj.get_text_height())
             setattr(img, 'txt', txt_obj)
 
@@ -81,7 +83,7 @@ class Pin:
         pin_img = Img.make_blank_img(img_size=(pin_width, pin_height), folder_path='/tmp/', color=(255, 255, 255))
         txt_img = Img.make_blank_img(img_size=(pin_width, pin_height), folder_path='/tmp/', transparent=True)
 
-        self.write_heading_to_pin(txt_img, fontsize=header_font_size)
+        self.write_heading_to_pin(txt_img, fontsize=header_font_size,font_index=Pin.font_index)
 
         x_next = l_margin
         y = t_margin + 300 + h_gap
@@ -95,8 +97,9 @@ class Pin:
         blend_image.write_img()
         return blend_image
 
-    def write_heading_to_pin(self, txt_img, top_margin=15, fontsize=40):
-        txt_obj = Text(txt=self.product_header, font_path=None, font_size=fontsize, max_width=txt_img.width)
+    def write_heading_to_pin(self, txt_img, top_margin=15, fontsize=40,font_index=1):
+        txt_obj = Text(txt=self.product_header, font_path=None, font_size=fontsize,
+                       max_width=txt_img.width,font_index=font_index)
         width = txt_obj.txt_width
         x = (txt_img.width - width) // 2
         loc = (x, top_margin)
@@ -120,5 +123,7 @@ if __name__ == '__main__':
     imgs_loaded = read_img_files(imgs_folder)
     # all_fonts = Text(zip_file_path=get_abs_path('/Font Pack.zip'),font_index=1)
     # Text.write_fonts_on_image(all_fonts)
+    # imags_folder where all intermediate files get saved
     pin = Pin(imgs=imgs_loaded, folder_path=imgs_folder, product_header='TOP FIVE PRODUCTS')
     res = pin.make_collage()
+    res.show_img()
