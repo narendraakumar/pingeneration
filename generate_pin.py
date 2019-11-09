@@ -1,17 +1,17 @@
 import os
 import os.path
-import tempfile
+import random
 
 import numpy as np
-from PIL import Image
 
 from models import Img, Text, Imgs
 from utils import get_abs_path
-
+max_num =999999999
 
 class Pin:
-    font_index = None
+    font_index = random.randint(0, 215)
     font_name = None
+
     def __init__(self, imgs: list, folder_path: str, desired_height=300, product_header='none'):
         super().__init__()
         if not all([False for p in imgs if type(p) != Img]):
@@ -31,9 +31,9 @@ class Pin:
         median_ar = 1
         h_pad = 0
         if len(a_r) > 0:
-            median_ar = float(np.median(a_r))
+            median_ar = float(np.median([im.aspect_ratio for im in self.imgs]))
         for i, im in enumerate(self.imgs):
-            if abs(im.aspect_ratio - median_ar) < 0.4:
+            if abs(im.aspect_ratio - median_ar) < 0.1:
                 continue
             new_width = int((median_ar) * im.height)
             new_height = int(im.width / median_ar)
@@ -83,7 +83,7 @@ class Pin:
         pin_img = Img.make_blank_img(img_size=(pin_width, pin_height), folder_path='/tmp/', color=(255, 255, 255))
         txt_img = Img.make_blank_img(img_size=(pin_width, pin_height), folder_path='/tmp/', transparent=True)
 
-        self.write_heading_to_pin(txt_img, fontsize=header_font_size,font_index=Pin.font_index)
+        self.write_heading_to_pin(txt_img, fontsize=header_font_size, font_index=Pin.font_index)
 
         x_next = l_margin
         y = t_margin + 300 + h_gap
@@ -97,12 +97,12 @@ class Pin:
         blend_image.write_img()
         return blend_image
 
-    def write_heading_to_pin(self, txt_img, top_margin=15, fontsize=40,font_index=1):
+    def write_heading_to_pin(self, txt_img, top_margin=15, fontsize=40, font_index=1):
         txt_obj = Text(txt=self.product_header, font_path=None, font_size=fontsize,
-                       max_width=txt_img.width,font_index=font_index)
+                       max_width=txt_img.width, font_index=font_index)
         width = txt_obj.txt_width
         x = (txt_img.width - width) // 2
-        loc = (x, top_margin)
+        loc = (abs(x), min(top_margin,max_num))
         txt_obj.draw_text(img=txt_img, loc=loc)
         pass
 
@@ -124,6 +124,6 @@ if __name__ == '__main__':
     # all_fonts = Text(zip_file_path=get_abs_path('/Font Pack.zip'),font_index=1)
     # Text.write_fonts_on_image(all_fonts)
     # imags_folder where all intermediate files get saved
-    pin = Pin(imgs=imgs_loaded, folder_path=imgs_folder, product_header='TOP FIVE PRODUCTS')
+    pin = Pin(imgs=imgs_loaded, folder_path=imgs_folder, product_header='TOP FOUR PRODUCTS')
     res = pin.make_collage()
     res.show_img()

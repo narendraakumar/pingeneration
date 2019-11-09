@@ -135,8 +135,12 @@ class Img:
 
     def padding(self, dim, pad_color=(255, 255, 255)):
 
-        # self.resize()
+        if self.width>dim[0]:
+            dim = (max(dim[0],self.width),dim[1])
+        elif self.height>dim[1]:
+            dim = (dim[0],max(dim[1],self.height))
         new_im = Image.new("RGB", dim, color=pad_color)
+
         offset = ((new_im.size[0] - self.width) // 2, (new_im.size[1] - self.height) // 2)
         new_im.paste(self.obj, offset)
         self.obj = new_im
