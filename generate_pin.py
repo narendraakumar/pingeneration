@@ -11,9 +11,10 @@ from utils import get_abs_path, pinproperties
 class Pin:
     font_index = random.randint(0, 215)
     font_name = None
+    draw_txt = False
     print(font_index)
 
-    def __init__(self, imgs: list, folder_path: str, desired_height=300, product_header='none'):
+    def __init__(self, imgs: list, folder_path: str, desired_height=300, product_header='none',matrix_dim=(4,2)):
         super().__init__()
         if not all([False for p in imgs if type(p) != Img]):
             imgs = self.make_Img_obj(imgs)
@@ -22,6 +23,7 @@ class Pin:
         self.total_imgs = len(imgs)
         self.desired_height = desired_height
         self.product_header = product_header
+        self.matrix_dim = matrix_dim
 
     @staticmethod
     def make_Img_obj(imgs: list):
@@ -54,7 +56,7 @@ class Pin:
 
         ImageProcess.calculation_img_prop(self.imgs)
 
-        img_grp = Pin.img_matrix(all_imgs=self.imgs,matrix_dim=(2,4))
+        img_grp = Pin.img_matrix(all_imgs=self.imgs,matrix_dim=self.matrix_dim)
 
         pin_width, pin_height = self.pin_size_calculation(img_grp, header_height=header_font_size * 3)
 
@@ -62,7 +64,7 @@ class Pin:
         txt_img = Img.make_blank_img(img_size=(pin_width, pin_height), folder_path='/tmp/', transparent=True)
         self.write_heading_to_pin(txt_img, fontsize=header_font_size, top_margin=int(header_font_size / 2.3),
                                   font_index=Pin.font_index)
-        draw_txt = False
+
         y_next = t_margin
         for grp in img_grp:
             x_next = l_margin
@@ -70,7 +72,7 @@ class Pin:
                 img = im.thumbnail_img
                 pin_img.merge_imgs(img, pin_loc=(x_next, y_next))
                 y_text = y_next+grp.max[1]+h_gap
-                if draw_txt:
+                if Pin.draw_txt:
                     img.txt.draw_text(img=txt_img, color=pinproperties.FONT_COLOR.value,loc=(x_next, y_text))
                 x_next = x_next + v_gap + img.width
             y_next += grp.max[1] + grp.max_grp_txt_height(grp.img_grp) + v_gap*2
@@ -80,6 +82,7 @@ class Pin:
         blend_image.write_img()
         print(blend_image.height)
         return blend_image
+
 
     def pin_size_calculation(self, img_grp, header_height=30):
         img_heights = []
@@ -111,6 +114,6 @@ if __name__ == '__main__':
     # all_fonts = Text(zip_file_path=get_abs_path('/Font Pack.zip'),font_index=1)
     # Text.write_fonts_on_image(all_fonts)
     # imags_folder where all intermediate files get saved
-    pin = Pin(imgs=imgs_loaded, folder_path=imgs_folder, product_header='TOP FOUR PRODUCTS')
+    pin = Pin(imgs=imgs_loaded, folder_path=imgs_folder, product_header='TOP FOUR PRODUCTS',matrix_dim=(4,2))
     res = pin.make_collage()
     res.show_img()
