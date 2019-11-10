@@ -27,10 +27,16 @@ def read_from_file(file_path):
 class pinproperties(Enum):
     H_LINE = 1
     V_LINE = 1
-    L_MARGIN = 10
-    R_MARGIN = 10
+    L_MARGIN = 50
+    R_MARGIN = 50
     B_MARGIN = 30
-    V_GAP = 20
+    V_GAP = 40
     H_GAP = 40
     FONT_SIZE = 20
     MAX_NUM = 999999999
+    HEADER_FONT_SIZE = FONT_SIZE * 3
+    T_MARGIN = 10 + HEADER_FONT_SIZE * 2
+    DESIRED_HEIGHT = 300
+    TOTAL_V_GAP = V_GAP * H_LINE
+    TOTAL_H_GAP = H_GAP * H_LINE
+
