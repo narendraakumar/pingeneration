@@ -34,7 +34,7 @@ class Pin:
         width = txt_obj.txt_width
         x = (txt_img.width - width) // 2
         loc = (abs(x), min(top_margin, pinproperties.MAX_NUM.value))
-        txt_obj.draw_text(img=txt_img, loc=loc)
+        txt_obj.draw_text(img=txt_img,color=pinproperties.FONT_COLOR_HEADER.value, loc=loc)
         pass
 
     @staticmethod
@@ -54,7 +54,7 @@ class Pin:
 
         ImageProcess.calculation_img_prop(self.imgs)
 
-        img_grp = Pin.img_matrix(all_imgs=self.imgs,matrix_dim=(4,3))
+        img_grp = Pin.img_matrix(all_imgs=self.imgs,matrix_dim=(2,4))
 
         pin_width, pin_height = self.pin_size_calculation(img_grp, header_height=header_font_size * 3)
 
@@ -62,7 +62,7 @@ class Pin:
         txt_img = Img.make_blank_img(img_size=(pin_width, pin_height), folder_path='/tmp/', transparent=True)
         self.write_heading_to_pin(txt_img, fontsize=header_font_size, top_margin=int(header_font_size / 2.3),
                                   font_index=Pin.font_index)
-
+        draw_txt = False
         y_next = t_margin
         for grp in img_grp:
             x_next = l_margin
@@ -70,7 +70,8 @@ class Pin:
                 img = im.thumbnail_img
                 pin_img.merge_imgs(img, pin_loc=(x_next, y_next))
                 y_text = y_next+grp.max[1]+h_gap
-                img.txt.draw_text(img=txt_img, loc=(x_next, y_text))
+                if draw_txt:
+                    img.txt.draw_text(img=txt_img, color=pinproperties.FONT_COLOR.value,loc=(x_next, y_text))
                 x_next = x_next + v_gap + img.width
             y_next += grp.max[1] + grp.max_grp_txt_height(grp.img_grp) + v_gap*2
 

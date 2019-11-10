@@ -30,13 +30,15 @@ class pinproperties(Enum):
     L_MARGIN = 50
     R_MARGIN = 50
     B_MARGIN = 30
-    V_GAP = 40
-    H_GAP = 40
-    FONT_SIZE = 20
+    V_GAP = 2
+    H_GAP = 2
+    FONT_SIZE = 2
     MAX_NUM = 999999999
-    HEADER_FONT_SIZE = FONT_SIZE * 3
+    HEADER_FONT_SIZE = 60
     T_MARGIN = 10 + HEADER_FONT_SIZE * 2
     DESIRED_HEIGHT = 300
     TOTAL_V_GAP = V_GAP * H_LINE
     TOTAL_H_GAP = H_GAP * H_LINE
+    FONT_COLOR = 'rgb(255, 0, 0)'
+    FONT_COLOR_HEADER = 'rgb(255, 0, 0)'
 
