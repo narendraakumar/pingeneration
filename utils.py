@@ -1,4 +1,5 @@
 import os
+from enum import Enum
 
 
 def get_abs_path(rel_path: str):
@@ -23,3 +24,13 @@ def read_from_file(file_path):
     return res.split('\n')
 
 
+class pinproperties(Enum):
+    H_LINE = 1
+    V_LINE = 1
+    L_MARGIN = 10
+    R_MARGIN = 10
+    B_MARGIN = 30
+    V_GAP = 20
+    H_GAP = 40
+    FONT_SIZE = 20
+    MAX_NUM = 999999999

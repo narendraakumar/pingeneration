@@ -135,10 +135,10 @@ class Img:
 
     def padding(self, dim, pad_color=(255, 255, 255)):
 
-        if self.width>dim[0]:
-            dim = (max(dim[0],self.width),dim[1])
-        elif self.height>dim[1]:
-            dim = (dim[0],max(dim[1],self.height))
+        if self.width > dim[0]:
+            dim = (max(dim[0], self.width), dim[1])
+        elif self.height > dim[1]:
+            dim = (dim[0], max(dim[1], self.height))
         new_im = Image.new("RGB", dim, color=pad_color)
 
         offset = ((new_im.size[0] - self.width) // 2, (new_im.size[1] - self.height) // 2)
@@ -251,6 +251,7 @@ class Text(Fonts):
             font_path = self.choose_font(name=font_name, index=font_index)
 
         self.font = ImageFont.truetype(font_path, size=font_size, encoding="unic")
+        self.max_height = self.get_text_height()
 
     @property
     def lower_case(self):
@@ -303,13 +304,56 @@ class Text(Fonts):
         draw = ImageDraw.Draw(img.obj)
         y = loc[1]
         for line in self.text_wrap():
-            draw.text(loc, line, fill=color, font=self.font)
+            draw.text(loc, line, fill=color, font=self.font, align='center', spacing=4)
             y = y + line_height
             loc = (loc[0], y)
         return img
 
 
+class ImagesGroup:
+
+    def __init__(self, imgs=None):
+        self.img_grp = imgs
+        self.size_list = ImagesGroup.calculate_grp_property(imgs)
+        self.size_list_t = ImagesGroup.calculate_grp_property_t(imgs)
+        self.group_heights = ImagesGroup.calculate_grp_heights(imgs)
+        self.group_widths = ImagesGroup.calculate_grp_widths(imgs)
+
+    @staticmethod
+    def calculate_grp_property(imgs):
+        return [im.obj.size for im in imgs]
+
+    @staticmethod
+    def calculate_grp_property_t(imgs):
+        return [im.thumbnail_img.obj.size for im in imgs]
+
+    @staticmethod
+    def calculate_grp_heights(imgs):
+        return [im.thumbnail_img.height for im in imgs]
+
+    @staticmethod
+    def calculate_grp_widths(imgs):
+        return [im.thumbnail_img.width for im in imgs]
+
+    @staticmethod
+    def max_grp_txt_height(imgs):
+        return max([im.thumbnail_img.txt_obj.max_height for im in imgs])
+
+    @staticmethod
+    def max_grp_txt_width(imgs):
+        return max([im.thumbnail_img.txt_obj.max_width for im in imgs])
+
+
+
+
+
+
+
+
 class Imgs:
+
+    def __init__(self, imgs=None):
+        self.img_groups = imgs
 
     @staticmethod
     def make_imgs_equal_height(Pin, _height=300):
@@ -325,3 +369,28 @@ class Imgs:
         all_widths = [ob.width for ob in imgs_objs]
         all_heights = [ob.height for ob in imgs_objs]
         return all_widths, all_heights
+
+    @staticmethod
+    def aspect_ratio_equalizer(self):
+        a_r = [im.aspect_ratio for im in self.imgs]
+        median_ar = 1
+        h_pad = 0
+        if len(a_r) > 0:
+            median_ar = float(np.median([im.aspect_ratio for im in self.imgs]))
+        for i, im in enumerate(self.imgs):
+            if abs(im.aspect_ratio - median_ar) < 0.1:
+                continue
+            new_width = int((median_ar) * im.height)
+            new_height = int(im.width / median_ar)
+
+            if new_height > new_width:
+                new_dim = (im.width, new_height)
+            else:
+                new_dim = (new_width, im.height)
+
+            if len(self.imgs) - 1 == i:
+                h_pad = int(((new_dim[0] - im.width) / 2) * (self.desired_height / im.height))
+            im.padding(new_dim)
+        return h_pad
+
+
