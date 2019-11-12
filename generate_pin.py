@@ -7,14 +7,15 @@ import numpy as np
 from models import Img, Text, ImageProcess, ImagesGroup
 from utils import get_abs_path, pinproperties
 
-
 class Pin:
     font_index = random.randint(0, 215)
     font_name = None
     draw_txt = False
     print(font_index)
+    global write_txt
+    write_txt = False
 
-    def __init__(self, imgs: list, folder_path: str, desired_height=300, product_header='none',matrix_dim=(4,2)):
+    def __init__(self, imgs: list, folder_path: str, desired_height=300, product_header=[],matrix_dim=(4,2)):
         super().__init__()
         if not all([False for p in imgs if type(p) != Img]):
             imgs = self.make_Img_obj(imgs)
@@ -30,13 +31,17 @@ class Pin:
         return [p if type(p) == Img else Img(p) for p in imgs]
 
     def write_heading_to_pin(self, txt_img, top_margin=15, fontsize=40, font_index=1):
-        txt_obj = Text(txt=self.product_header, font_path=None, font_size=fontsize,
-                       max_width=txt_img.width, font_index=font_index)
-
-        width = txt_obj.txt_width
-        x = (txt_img.width - width) // 2
-        loc = (abs(x), min(top_margin, pinproperties.MAX_NUM.value))
-        txt_obj.draw_text(img=txt_img,color=pinproperties.FONT_COLOR_HEADER.value, loc=loc)
+        txt_objs = []
+        for p_h in self.product_header:
+            txt_objs.append(Text(txt=p_h, font_path=None, font_size=fontsize,
+                           max_width=txt_img.width, font_index=font_index))
+        y = min(top_margin, pinproperties.MAX_NUM.value)
+        for txt_obj in txt_objs:
+            width = txt_obj.txt_width
+            x = (txt_img.width - width) // 2
+            loc = (abs(x),y)
+            txt_obj.draw_text(img=txt_img,color=pinproperties.FONT_COLOR_HEADER.value, loc=loc)
+            y+=txt_obj.max_height+pinproperties.H_GAP.value
         pass
 
     @staticmethod
@@ -58,7 +63,7 @@ class Pin:
 
         img_grp = Pin.img_matrix(all_imgs=self.imgs,matrix_dim=self.matrix_dim)
 
-        pin_width, pin_height = self.pin_size_calculation(img_grp, header_height=header_font_size * 3)
+        pin_width, pin_height = self.pin_size_calculation(img_grp, header_height=header_font_size )
 
         pin_img = Img.make_blank_img(img_size=(pin_width, pin_height), folder_path='/tmp/', color=(255, 255, 255))
         txt_img = Img.make_blank_img(img_size=(pin_width, pin_height), folder_path='/tmp/', transparent=True)
@@ -72,7 +77,7 @@ class Pin:
                 img = im.thumbnail_img
                 pin_img.merge_imgs(img, pin_loc=(x_next, y_next))
                 y_text = y_next+grp.max[1]+h_gap
-                if Pin.draw_txt:
+                if pinproperties.WRITE_TXT.value:
                     img.txt.draw_text(img=txt_img, color=pinproperties.FONT_COLOR.value,loc=(x_next, y_text))
                 x_next = x_next + v_gap + img.width
             y_next += grp.max[1] + grp.max_grp_txt_height(grp.img_grp) + v_gap*2
@@ -114,6 +119,6 @@ if __name__ == '__main__':
     # all_fonts = Text(zip_file_path=get_abs_path('/Font Pack.zip'),font_index=1)
     # Text.write_fonts_on_image(all_fonts)
     # imags_folder where all intermediate files get saved
-    pin = Pin(imgs=imgs_loaded, folder_path=imgs_folder, product_header='TOP FOUR PRODUCTS',matrix_dim=(4,2))
+    pin = Pin(imgs=imgs_loaded, folder_path=imgs_folder, product_header=['TOP FOUR PRODUCTS','CHECK THEM','TOP FOUR PRODUCTS','CHECK THEM'],matrix_dim=(4,2))
     res = pin.make_collage()
     res.show_img()
