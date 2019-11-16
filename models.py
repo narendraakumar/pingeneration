@@ -8,7 +8,7 @@ from copy import deepcopy
 import numpy as np
 from PIL import Image, ImageFont, ImageDraw
 
-from utils import get_abs_path, write_to_file, read_from_file
+from utils import get_abs_path, write_to_file, read_from_file, pinproperties
 
 
 class Img:
@@ -127,7 +127,7 @@ class Img:
         self.obj.paste(foreground.obj, pin_loc)
         return True
 
-    def blend_imgs(self, bg_img, alpha=1.0, box=(0, 0)):
+    def blend_imgs(self, bg_img, alpha=1.34, box=(0, 0)):
         fg_img_trans = Image.blend(self.obj, bg_img.obj, alpha)
         bg_img.obj.paste(fg_img_trans, box, fg_img_trans)
         bg_img.obj = Image.alpha_composite(self.obj, bg_img.obj)
@@ -241,7 +241,7 @@ class Fonts:
 
 class Text(Fonts):
 
-    def __init__(self, txt: str = '', font_path=None, font_size=20, max_width=100,
+    def __init__(self, txt: str = '', font_path=None, font_size=20, max_width=pinproperties.MAX_VAL.value,
                  zip_file_path=None, font_name=None, font_index=None):
         super().__init__(zip_file_path)
         self.txt = txt
@@ -295,29 +295,54 @@ class Text(Fonts):
         return lines
 
     def get_text_height(self):
-        return len(self.text_wrap()) * self.font.getsize('hg')[1]
+        # return len(self.text_wrap()) * self.font.getsize('hg')[1]
+
+        return len(self.text_wrap()) * self.font.size
 
     def draw_text(self, img, color='rgb(0, 0, 0)', loc: tuple = (10, 20)):
         if img.obj == None:
             img.load()
         line_height = self.font.getsize('hg')[1]
+
         draw = ImageDraw.Draw(img.obj)
         y = loc[1]
+        v_space = 0
+        if self.font.size < 20:
+            v_space = 4
         for line in self.text_wrap():
             draw.text(loc, line, fill=color, font=self.font, align='center', spacing=4)
-            y = y + line_height
+            y = y + line_height + 4
             loc = (loc[0], y)
         return img
 
 
+class text_list(Text):
+
+    def __init__(self, t_list=[]):
+        self.txt_list = [Text(txt=l) for l in t_list]
+        super().__init__()
+
+    def get_max_txt_height(self):
+        heights = [t.max_height for t in self.txt_list]
+        return sum(heights)
+
+
 class ImagesGroup:
 
-    def __init__(self, imgs=None):
+    def __init__(self, imgs=None, font_index=1):
+        self.font_size = pinproperties.FONT_SIZE.value
+        self.font_index = font_index
         self.img_grp = imgs
+        self.add_txt_obj()
         self.size_list = ImagesGroup.calculate_grp_property(imgs)
         self.size_list_t = ImagesGroup.calculate_grp_property_t(imgs)
-        self.group_heights = ImagesGroup.calculate_grp_heights(imgs)
-        self.group_widths = ImagesGroup.calculate_grp_widths(imgs)
+        self.group_img_heights = ImagesGroup.calculate_grp_height(imgs)
+        self.group_img_widths = ImagesGroup.calculate_grp_widths(imgs)
+        self.max = (max(self.group_img_heights), max(self.group_img_widths))
+        # self.max_txt = ()
+
+    def __len__(self):
+        return len(self.img_grp)
 
     @staticmethod
     def calculate_grp_property(imgs):
@@ -328,7 +353,7 @@ class ImagesGroup:
         return [im.thumbnail_img.obj.size for im in imgs]
 
     @staticmethod
-    def calculate_grp_heights(imgs):
+    def calculate_grp_height(imgs):
         return [im.thumbnail_img.height for im in imgs]
 
     @staticmethod
@@ -337,28 +362,33 @@ class ImagesGroup:
 
     @staticmethod
     def max_grp_txt_height(imgs):
-        return max([im.thumbnail_img.txt_obj.max_height for im in imgs])
+        return max([im.thumbnail_img.txt.max_height for im in imgs])
 
     @staticmethod
     def max_grp_txt_width(imgs):
-        return max([im.thumbnail_img.txt_obj.max_width for im in imgs])
+        return max([im.thumbnail_img.txt.max_width for im in imgs])
+
+    def add_txt_obj(self):
+        d = []
+        for _img in self.img_grp:
+            img = _img.thumbnail_img
+            txt_obj = Text(txt=str(_img.name_without_ext), font_path=None, font_size=self.font_size,
+                           max_width=img.width, font_index=self.font_index)
+            d.append(txt_obj.get_text_height())
+            setattr(img, 'txt', txt_obj)
+        setattr(self, 'max_txt_height', max(d))
+        return True
 
 
-
-
-
-
-
-
-class Imgs:
+class ImageProcess:
 
     def __init__(self, imgs=None):
         self.img_groups = imgs
 
     @staticmethod
-    def make_imgs_equal_height(Pin, _height=300):
+    def make_imgs_equal_height(imgs, _height=300):
         thumb_objs = []
-        for img in Pin.imgs:
+        for img in imgs:
             thumbnail_img = img.resize(new_height=300)
             setattr(img, 'thumbnail_img', thumbnail_img)
             thumb_objs.append(thumbnail_img)
@@ -371,13 +401,13 @@ class Imgs:
         return all_widths, all_heights
 
     @staticmethod
-    def aspect_ratio_equalizer(self):
-        a_r = [im.aspect_ratio for im in self.imgs]
+    def aspect_ratio_equalizer(imgs, l_margin):
+        a_r = [im.aspect_ratio for im in imgs]
         median_ar = 1
         h_pad = 0
         if len(a_r) > 0:
-            median_ar = float(np.median([im.aspect_ratio for im in self.imgs]))
-        for i, im in enumerate(self.imgs):
+            median_ar = float(np.median([im.aspect_ratio for im in imgs]))
+        for i, im in enumerate(imgs):
             if abs(im.aspect_ratio - median_ar) < 0.1:
                 continue
             new_width = int((median_ar) * im.height)
@@ -388,9 +418,31 @@ class Imgs:
             else:
                 new_dim = (new_width, im.height)
 
-            if len(self.imgs) - 1 == i:
-                h_pad = int(((new_dim[0] - im.width) / 2) * (self.desired_height / im.height))
+            if len(imgs) - 1 == i:
+                h_pad = int(((new_dim[0] - im.width) / 2) * (pinproperties.DESIRED_HEIGHT.value / im.height))
             im.padding(new_dim)
-        return h_pad
+        return h_pad + l_margin
+
+    @staticmethod
+    def calculation_img_prop(imgs):
+        l_margin = pinproperties.L_MARGIN.value
+        img_height = pinproperties.DESIRED_HEIGHT.value
+        l_margin = ImageProcess.aspect_ratio_equalizer(imgs, l_margin)
+        pinproperties.L_MARGIN._value_ = l_margin
+        imgs = ImageProcess.make_imgs_equal_height(imgs, _height=img_height)
+        return imgs
 
 
+class TextList(Text):
+
+    def __init__(self, t_list=[],font_size=40,max_width=1000):
+        self.txt_list = [Text(txt=l,font_size=font_size,max_width=max_width) for l in t_list]
+        super().__init__()
+
+    def get_max_txt_height(self):
+        heights = [t.max_height for t in self.txt_list]
+
+        return sum(heights)
+
+    def __len__(self):
+        return len(self.txt_list)
