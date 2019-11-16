@@ -31,6 +31,7 @@ class pinproperties(Enum):
     L_MARGIN = 50
     R_MARGIN = 50
     B_MARGIN = 30
+    MAX_VAL = 9999999999999
     if WRITE_TXT:
         V_GAP = 20
         H_GAP = 20

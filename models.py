@@ -241,7 +241,7 @@ class Fonts:
 
 class Text(Fonts):
 
-    def __init__(self, txt: str = '', font_path=None, font_size=20, max_width=100,
+    def __init__(self, txt: str = '', font_path=None, font_size=20, max_width=pinproperties.MAX_VAL.value,
                  zip_file_path=None, font_name=None, font_index=None):
         super().__init__(zip_file_path)
         self.txt = txt
@@ -309,14 +309,25 @@ class Text(Fonts):
             v_space = 4
         for line in self.text_wrap():
             draw.text(loc, line, fill=color, font=self.font, align='center', spacing=4)
-            y = y + line_height+4
+            y = y + line_height + 4
             loc = (loc[0], y)
         return img
 
 
+class text_list(Text):
+
+    def __init__(self, t_list=[]):
+        self.txt_list = [Text(txt=l) for l in t_list]
+        super().__init__()
+
+    def get_max_txt_height(self):
+        heights = [t.max_height for t in self.txt_list]
+        return sum(heights)
+
+
 class ImagesGroup:
 
-    def __init__(self, imgs=None, font_index = 1):
+    def __init__(self, imgs=None, font_index=1):
         self.font_size = pinproperties.FONT_SIZE.value
         self.font_index = font_index
         self.img_grp = imgs
@@ -368,12 +379,6 @@ class ImagesGroup:
         return True
 
 
-
-
-
-
-
-
 class ImageProcess:
 
     def __init__(self, imgs=None):
@@ -395,7 +400,7 @@ class ImageProcess:
         return all_widths, all_heights
 
     @staticmethod
-    def aspect_ratio_equalizer(imgs,l_margin):
+    def aspect_ratio_equalizer(imgs, l_margin):
         a_r = [im.aspect_ratio for im in imgs]
         median_ar = 1
         h_pad = 0
@@ -415,7 +420,7 @@ class ImageProcess:
             if len(imgs) - 1 == i:
                 h_pad = int(((new_dim[0] - im.width) / 2) * (pinproperties.DESIRED_HEIGHT.value / im.height))
             im.padding(new_dim)
-        return h_pad+l_margin
+        return h_pad + l_margin
 
     @staticmethod
     def calculation_img_prop(imgs):
@@ -427,5 +432,16 @@ class ImageProcess:
         return imgs
 
 
+class TextList(Text):
 
+    def __init__(self, t_list=[]):
+        self.txt_list = [Text(txt=l) for l in t_list]
+        super().__init__()
 
+    def get_max_txt_height(self):
+        heights = [t.max_height for t in self.txt_list]
+        print(heights)
+        return sum(heights)
+
+    def __len__(self):
+        return len(self.txt_list)
