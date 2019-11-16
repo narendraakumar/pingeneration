@@ -25,12 +25,28 @@ def read_from_file(file_path):
 
 
 class pinproperties(Enum):
+    WRITE_TXT = True
     H_LINE = 1
     V_LINE = 1
-    L_MARGIN = 10
-    R_MARGIN = 10
+    L_MARGIN = 50
+    R_MARGIN = 50
     B_MARGIN = 30
-    V_GAP = 20
-    H_GAP = 40
-    FONT_SIZE = 20
+    MAX_VAL = 9999999999999
+    if WRITE_TXT:
+        V_GAP = 20
+        H_GAP = 20
+        FONT_SIZE = 20
+    else:
+        V_GAP = 2
+        H_GAP = 2
+        FONT_SIZE = 2
+
     MAX_NUM = 999999999
+    HEADER_FONT_SIZE = 60
+    T_MARGIN = 10
+    DESIRED_HEIGHT = 300
+    TOTAL_V_GAP = V_GAP * H_LINE
+    TOTAL_H_GAP = H_GAP * H_LINE
+    FONT_COLOR = 'rgb(255, 0, 0)'
+    FONT_COLOR_HEADER = 'rgb(255, 0, 0)'
+
