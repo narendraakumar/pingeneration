@@ -9,17 +9,15 @@ from utils import get_abs_path, pinproperties
 
 
 class Pin:
-    font_index = random.randint(0, 215)
+    # font_index = random.randint(0, 215)
     font_name = None
     draw_txt = False
-    print(font_index)
-    global write_txt
-    write_txt = False
 
-    def __init__(self, imgs: list, folder_path: str, desired_height=300, product_header=[], matrix_dim=(4, 2)):
+    def __init__(self, imgs: list, folder_path: str, desired_height=300, product_header=[], matrix_dim=(4, 2), font_index=1):
         super().__init__()
         if not all([False for p in imgs if type(p) != Img]):
             imgs = self.make_Img_obj(imgs)
+        setattr(Pin, 'font_index', font_index)
         self.imgs = imgs
         self.folder = folder_path
         self.total_imgs = len(imgs)
@@ -60,17 +58,18 @@ class Pin:
         v_gap = pinproperties.V_GAP.value
         h_gap = pinproperties.H_GAP.value
         header_font_size = pinproperties.HEADER_FONT_SIZE.value
-        t_margin = pinproperties.T_MARGIN.value
+        t_margin = int(header_font_size / 2.3)
+        pinproperties.T_MARGIN._value_ = t_margin
         ImageProcess.calculation_img_prop(self.imgs)
 
         img_grp = Pin.img_matrix(all_imgs=self.imgs, matrix_dim=self.matrix_dim)
 
-        pin_width, pin_height = self.pin_size_calculation(img_grp, header_height=header_font_size)
+        pin_width, pin_height = self.pin_size_calculation(img_grp, header_font_size=header_font_size)
 
         pin_img = Img.make_blank_img(img_size=(pin_width, pin_height), folder_path='/tmp/', color=(255, 255, 255))
         txt_img = Img.make_blank_img(img_size=(pin_width, pin_height), folder_path='/tmp/', transparent=True)
         header_max_height = self.write_heading_to_pin(txt_img, fontsize=header_font_size,
-                                                      top_margin=int(header_font_size / 2.3),
+                                                      top_margin=t_margin,
                                                       font_index=Pin.font_index)
 
         y_next = getattr(self, "start_p")
@@ -89,24 +88,22 @@ class Pin:
         pin_img.obj = pin_img.obj.convert('RGBA')
         blend_image: Img = pin_img.blend_imgs(txt_img)
         blend_image.write_img()
-        print(blend_image.height)
         return blend_image
 
-    def pin_size_calculation(self, img_grp, header_height=30):
+    def pin_size_calculation(self, img_grp, header_font_size=40,max_width=2000):
         img_heights = []
         pin_width = 0
-        header = TextList(t_list=self.product_header)
-        start_p = header.get_max_txt_height()  + pinproperties.T_MARGIN.value
-        setattr(self, "start_p", start_p)
         for grp in img_grp:
             grp: ImagesGroup
             max_txt_height = getattr(grp, 'max_txt_height', None)
             pin_width = max(pin_width, sum(grp.group_img_widths) + (len(grp) - 1) * pinproperties.V_GAP.value)
-            print("d",max_txt_height + pinproperties.H_GAP.value * 2)
             img_heights.append(max(grp.group_img_heights) + max_txt_height + pinproperties.H_GAP.value * 2 )
 
-        pin_height = sum(img_heights) + start_p +pinproperties.B_MARGIN.value
         pin_width = pin_width + pinproperties.L_MARGIN.value + pinproperties.R_MARGIN.value
+        header = TextList(t_list=self.product_header,font_size=header_font_size,max_width=pin_width)
+        start_p = header.get_max_txt_height()  + pinproperties.T_MARGIN.value
+        setattr(self, "start_p", start_p)
+        pin_height = sum(img_heights) + start_p +pinproperties.B_MARGIN.value
 
         return pin_width, pin_height
 
@@ -125,10 +122,15 @@ def read_img_files(file_path):
 if __name__ == '__main__':
     imgs_folder = get_abs_path('/pics')
     imgs_loaded = read_img_files(imgs_folder)
+    matrix_dim = (1,3)
+    imgs_loaded = imgs_loaded[:matrix_dim[0]*matrix_dim[1]]
     # all_fonts = Text(zip_file_path=get_abs_path('/Font Pack.zip'),font_index=1)
     # Text.write_fonts_on_image(all_fonts)
     # imags_folder where all intermediate files get saved
     pin = Pin(imgs=imgs_loaded, folder_path=imgs_folder,
-              product_header=['TOP FOUR PRODUCTS', 'CHECK THEM', 'TOP FOUR PRODUCTS', 'CHECK THEM'], matrix_dim=(4, 2))
+              product_header=['TOP FOUR PRODUCTS', 'CHECK THEM', 'TOP FOUR PRODUCTS', 'CHECK THEM'],
+              matrix_dim = matrix_dim,font_index=20)
     res = pin.make_collage()
     res.show_img()
+    # res.write_img(file_path='/home/narendra/imgs/'+str(10)+".jpg")
+

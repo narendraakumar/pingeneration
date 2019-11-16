@@ -127,7 +127,7 @@ class Img:
         self.obj.paste(foreground.obj, pin_loc)
         return True
 
-    def blend_imgs(self, bg_img, alpha=1.0, box=(0, 0)):
+    def blend_imgs(self, bg_img, alpha=1.34, box=(0, 0)):
         fg_img_trans = Image.blend(self.obj, bg_img.obj, alpha)
         bg_img.obj.paste(fg_img_trans, box, fg_img_trans)
         bg_img.obj = Image.alpha_composite(self.obj, bg_img.obj)
@@ -295,7 +295,9 @@ class Text(Fonts):
         return lines
 
     def get_text_height(self):
-        return len(self.text_wrap()) * self.font.getsize('hg')[1]
+        # return len(self.text_wrap()) * self.font.getsize('hg')[1]
+
+        return len(self.text_wrap()) * self.font.size
 
     def draw_text(self, img, color='rgb(0, 0, 0)', loc: tuple = (10, 20)):
         if img.obj == None:
@@ -369,7 +371,6 @@ class ImagesGroup:
     def add_txt_obj(self):
         d = []
         for _img in self.img_grp:
-            print(_img.aspect_ratio)
             img = _img.thumbnail_img
             txt_obj = Text(txt=str(_img.name_without_ext), font_path=None, font_size=self.font_size,
                            max_width=img.width, font_index=self.font_index)
@@ -434,13 +435,13 @@ class ImageProcess:
 
 class TextList(Text):
 
-    def __init__(self, t_list=[]):
-        self.txt_list = [Text(txt=l) for l in t_list]
+    def __init__(self, t_list=[],font_size=40,max_width=1000):
+        self.txt_list = [Text(txt=l,font_size=font_size,max_width=max_width) for l in t_list]
         super().__init__()
 
     def get_max_txt_height(self):
         heights = [t.max_height for t in self.txt_list]
-        print(heights)
+
         return sum(heights)
 
     def __len__(self):

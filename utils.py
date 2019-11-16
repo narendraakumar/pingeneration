@@ -43,7 +43,7 @@ class pinproperties(Enum):
 
     MAX_NUM = 999999999
     HEADER_FONT_SIZE = 60
-    T_MARGIN = 10 + HEADER_FONT_SIZE * 2
+    T_MARGIN = 10
     DESIRED_HEIGHT = 300
     TOTAL_V_GAP = V_GAP * H_LINE
     TOTAL_H_GAP = H_GAP * H_LINE
