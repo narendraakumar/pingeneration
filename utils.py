@@ -47,6 +47,8 @@ class pinproperties(Enum):
     DESIRED_HEIGHT = 300
     TOTAL_V_GAP = V_GAP * H_LINE
     TOTAL_H_GAP = H_GAP * H_LINE
-    FONT_COLOR = 'rgb(255, 0, 0)'
-    FONT_COLOR_HEADER = 'rgb(255, 0, 0)'
+    FONT_COLOR = 'rgb(255, 0, 199)'
+    FONT_COLOR_HEADER = 'rgb(34, 0, 245)'
+    V_ALLIGN=False
+
 

@@ -329,9 +329,10 @@ class text_list(Text):
 
 class ImagesGroup:
 
-    def __init__(self, imgs=None, font_index=1):
+    def __init__(self, imgs=None, font_index=1,max_width=None):
         self.font_size = pinproperties.FONT_SIZE.value
         self.font_index = font_index
+        self.max_width = max_width
         self.img_grp = imgs
         self.add_txt_obj()
         self.size_list = ImagesGroup.calculate_grp_property(imgs)
@@ -339,6 +340,7 @@ class ImagesGroup:
         self.group_img_heights = ImagesGroup.calculate_grp_height(imgs)
         self.group_img_widths = ImagesGroup.calculate_grp_widths(imgs)
         self.max = (max(self.group_img_heights), max(self.group_img_widths))
+
         # self.max_txt = ()
 
     def __len__(self):
@@ -370,10 +372,13 @@ class ImagesGroup:
 
     def add_txt_obj(self):
         d = []
+        max_width =self.max_width
         for _img in self.img_grp:
             img = _img.thumbnail_img
+            if not max_width:
+                max_width = img.width
             txt_obj = Text(txt=str(_img.name_without_ext), font_path=None, font_size=self.font_size,
-                           max_width=img.width, font_index=self.font_index)
+                           max_width=max_width, font_index=self.font_index)
             d.append(txt_obj.get_text_height())
             setattr(img, 'txt', txt_obj)
         setattr(self, 'max_txt_height', max(d))
