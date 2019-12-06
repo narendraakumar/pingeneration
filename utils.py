@@ -25,7 +25,7 @@ def read_from_file(file_path):
 
 
 class pinproperties(Enum):
-    WRITE_TXT = True
+    WRITE_TXT = False
     H_LINE = 1
     V_LINE = 1
     L_MARGIN = 50
@@ -37,9 +37,9 @@ class pinproperties(Enum):
         H_GAP = 20
         FONT_SIZE = 20
     else:
-        V_GAP = 2
-        H_GAP = 2
-        FONT_SIZE = 2
+        V_GAP = 0
+        H_GAP = 0
+        FONT_SIZE = 0
 
     MAX_NUM = 999999999
     HEADER_FONT_SIZE = 60
@@ -47,8 +47,8 @@ class pinproperties(Enum):
     DESIRED_HEIGHT = 300
     TOTAL_V_GAP = V_GAP * H_LINE
     TOTAL_H_GAP = H_GAP * H_LINE
-    FONT_COLOR = 'rgb(255, 0, 199)'
-    FONT_COLOR_HEADER = 'rgb(34, 0, 245)'
-    V_ALLIGN=False
+    FONT_COLOR = 'rgb(255, 0, 0)'
+    FONT_COLOR_HEADER = 'rgb(0, 0, 245)'
+    V_ALLIGN=True
 
 

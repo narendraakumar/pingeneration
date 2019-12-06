@@ -426,6 +426,7 @@ class ImageProcess:
             if len(imgs) - 1 == i:
                 h_pad = int(((new_dim[0] - im.width) / 2) * (pinproperties.DESIRED_HEIGHT.value / im.height))
             im.padding(new_dim)
+        h_pad = 0
         return h_pad + l_margin
 
     @staticmethod

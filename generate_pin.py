@@ -1,6 +1,7 @@
 import os
 import os.path
 import random
+from copy import deepcopy
 
 import numpy as np
 
@@ -85,6 +86,7 @@ class Pin:
         v_gap = pinproperties.V_GAP.value
         h_gap = pinproperties.H_GAP.value
         x_next = l_margin
+
         start_p = getattr(self, "start_p")
         if pinproperties.V_ALLIGN.value:
             for grp in img_grp:
@@ -160,7 +162,7 @@ def read_img_files(file_path):
 if __name__ == '__main__':
     imgs_folder = get_abs_path('/pics')
     imgs_loaded = read_img_files(imgs_folder)
-    matrix_dim = (3, 3)
+    matrix_dim = (9,1)
     imgs_loaded = imgs_loaded[:matrix_dim[0] * matrix_dim[1]]
     # all_fonts = Text(zip_file_path=get_abs_path('/Font Pack.zip'),font_index=1)
     # Text.write_fonts_on_image(all_fonts)
