@@ -152,7 +152,8 @@ class Img:
                        transparent: bool = False, folder_path=None, write=False):
         if transparent:
             img_type = 'RGBA'
-            color = (0, 0, 0, 0)
+            if not color or len(color) != 4:
+                color = (0, 0, 0, 0)
         else:
             img_type = 'RGB'
 
@@ -169,12 +170,14 @@ class Img:
 
 class Fonts:
 
-    def __init__(self, zip_file_path=None):
+    def __init__(self, zip_file_path=None,font_color=None,font_size=None):
         self.font_name_list = None
         if zip_file_path is None:
             zip_file_path = get_abs_path('/Font Pack.zip')
         self.zip_path = zip_file_path
         self.fonts = self.make_all_fonts(self.zip_path)
+        self.font_color = font_color
+        self.font_size = font_size
 
     def write_fonts_on_image(self):
         # all_fonts = read_from_file(file_path=get_abs_path('/fonts/fonts.txt'))
@@ -199,7 +202,7 @@ class Fonts:
                 r += 1
                 x += x_w
                 y = 20
-            txt_obj.draw_text(img=img, loc=(x, y))
+            txt_obj.draw_text(img=img, loc=(x, y),max_width=img.width)
         img.write_img(file_path=get_abs_path('/fonts/fonts.jpg'))
         return True
 
@@ -242,8 +245,8 @@ class Fonts:
 class Text(Fonts):
 
     def __init__(self, txt: str = '', font_path=None, font_size=20, max_width=pinproperties.MAX_VAL.value,
-                 zip_file_path=None, font_name=None, font_index=None):
-        super().__init__(zip_file_path)
+                 zip_file_path=None, font_name=None, font_index=None,font_color=None):
+        super().__init__(zip_file_path,font_color=font_color,font_size=font_size)
         self.txt = txt
         self.font_path = font_path
         self.max_width = max_width
@@ -272,20 +275,22 @@ class Text(Fonts):
         if self.font.getsize(self.txt)[0] <= self.max_width:
             return self.font.size
         else:
-            return len(self.text_wrap()) * self.font.size
+            return len(self.text_wrap(self.max_width)) * self.font.size
 
-    def text_wrap(self):
+    def text_wrap(self,max_width=0):
         lines = []
-        if self.font.getsize(self.txt)[0] <= self.max_width:
+        if self.font.getsize(self.txt)[0] <= max_width:
             lines.append(self.txt)
         else:
+            import textwrap
+            # lines = textwrap.wrap(self.txt, width=self.max_width)
             # split the line by spaces to get words
             words = self.txt.split(' ')
             i = 0
             # append every word to a line while its width is shorter than image width
             while i < len(words):
                 line = ''
-                while i < len(words) and self.font.getsize(line + words[i])[0] <= self.max_width:
+                while i < len(words) and self.font.getsize(line + words[i])[0] <= max_width:
                     line = line + words[i] + " "
                     i += 1
                 if not line:
@@ -297,9 +302,9 @@ class Text(Fonts):
     def get_text_height(self):
         # return len(self.text_wrap()) * self.font.getsize('hg')[1]
 
-        return len(self.text_wrap()) * self.font.size
+        return len(self.text_wrap(self.max_width)) * self.font.size
 
-    def draw_text(self, img, color='rgb(0, 0, 0)', loc: tuple = (10, 20)):
+    def draw_text(self, img, color='rgb(0, 0, 0)', loc: tuple = (10, 20),max_width=0):
         if img.obj == None:
             img.load()
         line_height = self.font.getsize('hg')[1]
@@ -309,7 +314,7 @@ class Text(Fonts):
         v_space = 0
         if self.font.size < 20:
             v_space = 4
-        for line in self.text_wrap():
+        for line in self.text_wrap(max_width):
             draw.text(loc, line, fill=color, font=self.font, align='center', spacing=4)
             y = y + line_height + 4
             loc = (loc[0], y)
@@ -329,7 +334,7 @@ class text_list(Text):
 
 class ImagesGroup:
 
-    def __init__(self, imgs=None, font_index=1,max_width=None):
+    def __init__(self, imgs=None, font_index=1, max_width=None):
         self.font_size = pinproperties.FONT_SIZE.value
         self.font_index = font_index
         self.max_width = max_width
@@ -372,7 +377,7 @@ class ImagesGroup:
 
     def add_txt_obj(self):
         d = []
-        max_width =self.max_width
+        max_width = self.max_width
         for _img in self.img_grp:
             img = _img.thumbnail_img
             if not max_width:
@@ -441,8 +446,8 @@ class ImageProcess:
 
 class TextList(Text):
 
-    def __init__(self, t_list=[],font_size=40,max_width=1000):
-        self.txt_list = [Text(txt=l,font_size=font_size,max_width=max_width) for l in t_list]
+    def __init__(self, t_list=[], font_size=40, max_width=1000):
+        self.txt_list = [Text(txt=l, font_size=font_size, max_width=max_width) for l in t_list]
         super().__init__()
 
     def get_max_txt_height(self):

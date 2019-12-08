@@ -36,10 +36,12 @@ class pinproperties(Enum):
         V_GAP = 20
         H_GAP = 20
         FONT_SIZE = 20
+        MAX_WIDTH_FOR_TXT = 150  # when text is written to image
     else:
-        V_GAP = 0
-        H_GAP = 0
+        V_GAP = 2
+        H_GAP = 1
         FONT_SIZE = 0
+        MAX_WIDTH_FOR_TXT = 1
 
     MAX_NUM = 999999999
     HEADER_FONT_SIZE = 60
@@ -49,6 +51,4 @@ class pinproperties(Enum):
     TOTAL_H_GAP = H_GAP * H_LINE
     FONT_COLOR = 'rgb(255, 0, 0)'
     FONT_COLOR_HEADER = 'rgb(0, 0, 245)'
-    V_ALLIGN=True
-
-
+    V_ALLIGN = True

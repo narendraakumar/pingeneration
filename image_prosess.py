@@ -16,29 +16,34 @@ def alpha_to_color(image, color=(255, 255, 255)):
     return Image.fromarray(x, 'RGBA')
 
 
-def alpha_composite(front, back):
-    """Alpha composite two RGBA images.
-    front -- PIL RGBA Image object
-    back -- PIL RGBA Image object
-
-    """
-    front = np.asarray(front)
-    back = np.asarray(back)
-    result = np.empty(front.shape, dtype='float')
+def alpha_composite(src, dst):
+    '''
+    Return the alpha composite of src and dst.
+    Parameters:
+    src -- PIL RGBA Image object
+    dst -- PIL RGBA Image object
+    '''
+    if src.mode == 'RGB':
+        src.convert('RGBA')
+    if dst.mode == 'RGB':
+        dst.convert('RGBA')
+    src = np.asarray(src)
+    dst = np.asarray(dst)
+    out = np.empty(src.shape, dtype='float')
     alpha = np.index_exp[:, :, 3:]
     rgb = np.index_exp[:, :, :3]
-    falpha = front[alpha] / 255.0
-    balpha = back[alpha] / 255.0
-    result[alpha] = falpha + balpha * (1 - falpha)
+    src_a = src[alpha] / 255.0
+    dst_a = dst[alpha] / 255.0
+    out[alpha] = src_a + dst_a * (1 - src_a)
     old_setting = np.seterr(invalid='ignore')
-    result[rgb] = (front[rgb] * falpha + back[rgb] * balpha * (1 - falpha)) / result[alpha]
+    out[rgb] = (src[rgb] * src_a + dst[rgb] * dst_a * (1 - src_a)) / out[alpha]
     np.seterr(**old_setting)
-    result[alpha] *= 255
-    np.clip(result, 0, 255)
-    # astype('uint8') maps np.nan and np.inf to 0
-    result = result.astype('uint8')
-    result = Image.fromarray(result, 'RGBA')
-    return result
+    out[alpha] *= 255
+    np.clip(out, 0, 255)
+    # astype('uint8') maps np.nan (and np.inf) to 0
+    out = out.astype('uint8')
+    out = Image.fromarray(out, 'RGBA')
+    return out
 
 
 def alpha_composite_with_color(image, color=(255, 255, 255)):
