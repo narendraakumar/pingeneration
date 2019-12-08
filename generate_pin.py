@@ -101,7 +101,7 @@ class Pin:
 
         pin_width, pin_height = self.pin_size_calculation(img_grp, header_font_size=header_font_size)
 
-        pin_img = Img.make_blank_img(img_size=(pin_width, pin_height), folder_path='/tmp/', color=(255, 255, 0))
+        pin_img = Img.make_blank_img(img_size=(pin_width, pin_height), folder_path='/tmp/', color=(255, 255, 255))
         txt_img = Img.make_blank_img(img_size=(pin_width, pin_height), folder_path='/tmp/', transparent=True)
         header_max_height = self.write_txt_on_img(txt_img,txt = self.product_header, fontsize=header_font_size,
                                                   top_margin=t_margin,
@@ -134,7 +134,7 @@ class Pin:
                         img.txt.draw_text(img=txt_img, color=pinproperties.FONT_COLOR.value,
                                           loc=(x_text, y_next + t_margin),max_width=self.max_width)
                     y_next = y_next + h_gap + img.height
-                x_next += grp.max[0] + grp.max_grp_txt_width(grp.img_grp) + v_gap * 2
+                x_next += grp.max[1] + grp.max_grp_txt_width(grp.img_grp) + v_gap * 2
         else:
             y_next = start_p
             for grp in img_grp:
@@ -212,7 +212,7 @@ if __name__ == '__main__':
     imgs_folder = get_abs_path('/pics')
     imgs_loaded = read_img_files(imgs_folder)
     matrix_dim = (4,2)
-    imgs_loaded = imgs_loaded[:matrix_dim[0] * matrix_dim[1]]
+    imgs_loaded = [imgs_loaded[:matrix_dim[0] * matrix_dim[1]][6]]*8
     # all_fonts = Text(zip_file_path=get_abs_path('/Font Pack.zip'),font_index=1)
     # Text.write_fonts_on_image(all_fonts)
     # imags_folder where all intermediate files get saved
